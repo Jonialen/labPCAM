@@ -2,6 +2,7 @@
 
 #include <errno.h>
 #include <math.h>
+#include <omp.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +26,35 @@ static double random_range(uint64_t *state, double low, double high) {
     return low + (high - low) * random_unit(state);
 }
 
+static void update_body(const Body *current, Body *next, size_t index,
+                        size_t count, double softening_squared) {
+    double ax = 0.0;
+    double ay = 0.0;
+
+    for (size_t j = 0; j < count; ++j) {
+        if (index == j) {
+            continue;
+        }
+
+        const double dx = current[j].x - current[index].x;
+        const double dy = current[j].y - current[index].y;
+        const double distance_squared = dx * dx + dy * dy + softening_squared;
+        const double inverse_distance_cubed =
+            1.0 / (distance_squared * sqrt(distance_squared));
+        const double scale = NBODY_GRAVITATIONAL_CONSTANT * current[j].mass *
+                             inverse_distance_cubed;
+
+        ax += scale * dx;
+        ay += scale * dy;
+    }
+
+    next[index].vx = current[index].vx + ax * NBODY_DT;
+    next[index].vy = current[index].vy + ay * NBODY_DT;
+    next[index].x = current[index].x + next[index].vx * NBODY_DT;
+    next[index].y = current[index].y + next[index].vy * NBODY_DT;
+    next[index].mass = current[index].mass;
+}
+
 void nbody_initialize(Body *bodies, size_t count, uint64_t seed) {
     uint64_t state = seed;
 
@@ -41,30 +71,87 @@ void nbody_step(const Body *current, Body *next, size_t count) {
     const double softening_squared = NBODY_SOFTENING * NBODY_SOFTENING;
 
     for (size_t i = 0; i < count; ++i) {
-        double ax = 0.0;
-        double ay = 0.0;
-
-        for (size_t j = 0; j < count; ++j) {
-            if (i == j) {
-                continue;
-            }
-
-            const double dx = current[j].x - current[i].x;
-            const double dy = current[j].y - current[i].y;
-            const double distance_squared = dx * dx + dy * dy + softening_squared;
-            const double inverse_distance_cubed = 1.0 / (distance_squared * sqrt(distance_squared));
-            const double scale = NBODY_GRAVITATIONAL_CONSTANT * current[j].mass * inverse_distance_cubed;
-
-            ax += scale * dx;
-            ay += scale * dy;
-        }
-
-        next[i].vx = current[i].vx + ax * NBODY_DT;
-        next[i].vy = current[i].vy + ay * NBODY_DT;
-        next[i].x = current[i].x + next[i].vx * NBODY_DT;
-        next[i].y = current[i].y + next[i].vy * NBODY_DT;
-        next[i].mass = current[i].mass;
+        update_body(current, next, i, count, softening_squared);
     }
+}
+
+static int nbody_openmp_schedule(NBodySchedule schedule, omp_sched_t *kind) {
+    switch (schedule) {
+        case NBODY_SCHEDULE_STATIC:
+            *kind = omp_sched_static;
+            return 0;
+        case NBODY_SCHEDULE_DYNAMIC:
+            *kind = omp_sched_dynamic;
+            return 0;
+        case NBODY_SCHEDULE_GUIDED:
+            *kind = omp_sched_guided;
+            return 0;
+    }
+    return -1;
+}
+
+int nbody_step_parallel(const Body *current, Body *next, size_t count,
+                        int requested_threads, NBodySchedule schedule,
+                        int chunk_size, int *actual_threads) {
+    omp_sched_t openmp_schedule;
+    int observed_threads = 0;
+
+    if (current == NULL || next == NULL || count == 0 || requested_threads <= 0 ||
+        chunk_size < 0 || nbody_openmp_schedule(schedule, &openmp_schedule) != 0) {
+        return -1;
+    }
+    omp_set_schedule(openmp_schedule, chunk_size);
+
+    #pragma omp parallel num_threads(requested_threads) shared(observed_threads)
+    {
+        #pragma omp single
+        observed_threads = omp_get_num_threads();
+
+        #pragma omp for schedule(runtime)
+        for (size_t i = 0; i < count; ++i) {
+            update_body(current, next, i, count,
+                        NBODY_SOFTENING * NBODY_SOFTENING);
+        }
+    }
+
+    if (actual_threads != NULL) {
+        *actual_threads = observed_threads;
+    }
+    return 0;
+}
+
+int nbody_simulate_parallel(Body *bodies, size_t count, size_t steps,
+                            int requested_threads, NBodySchedule schedule,
+                            int chunk_size, int *actual_threads) {
+    if (bodies == NULL || count == 0 || count > SIZE_MAX / sizeof(Body) ||
+        requested_threads <= 0 || chunk_size < 0 ||
+        nbody_openmp_schedule(schedule, &(omp_sched_t){0}) != 0) {
+        return -1;
+    }
+
+    Body *buffer = malloc(count * sizeof(*buffer));
+    if (buffer == NULL) {
+        return -1;
+    }
+
+    Body *source = bodies;
+    Body *destination = buffer;
+    for (size_t step = 0; step < steps; ++step) {
+        if (nbody_step_parallel(source, destination, count, requested_threads,
+                                schedule, chunk_size, actual_threads) != 0) {
+            free(buffer);
+            return -1;
+        }
+        Body *swap = source;
+        source = destination;
+        destination = swap;
+    }
+    if (source != bodies) {
+        memcpy(bodies, source, count * sizeof(*bodies));
+    }
+
+    free(buffer);
+    return 0;
 }
 
 int nbody_simulate(Body *bodies, size_t count, size_t steps) {

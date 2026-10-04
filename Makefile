@@ -9,10 +9,11 @@ LDLIBS ?= -lm
 BUILD_DIR := build
 TEST_BINARY := $(BUILD_DIR)/test_nbody
 SEQUENTIAL_BINARY := $(BUILD_DIR)/nbody_seq
+PARALLEL_BINARY := $(BUILD_DIR)/nbody_parallel
 
 .PHONY: all clean test
 
-all: $(SEQUENTIAL_BINARY)
+all: $(SEQUENTIAL_BINARY) $(PARALLEL_BINARY)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -23,9 +24,13 @@ $(TEST_BINARY): tests/test_nbody.c src/nbody.c src/nbody.h | $(BUILD_DIR)
 $(SEQUENTIAL_BINARY): src/nbody_seq.c src/nbody.c src/nbody.h | $(BUILD_DIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(OPENMP_FLAGS) src/nbody_seq.c src/nbody.c -o $@ $(LDLIBS)
 
-test: $(TEST_BINARY) $(SEQUENTIAL_BINARY)
+$(PARALLEL_BINARY): src/nbody_parallel.c src/nbody.c src/nbody.h | $(BUILD_DIR)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(OPENMP_FLAGS) src/nbody_parallel.c src/nbody.c -o $@ $(LDLIBS)
+
+test: $(TEST_BINARY) $(SEQUENTIAL_BINARY) $(PARALLEL_BINARY)
 	$(TEST_BINARY)
 	sh tests/test_cli.sh $(SEQUENTIAL_BINARY)
+	sh tests/test_parallel_cli.sh $(PARALLEL_BINARY)
 
 clean:
 	rm -rf $(BUILD_DIR)
