@@ -131,6 +131,64 @@ static void test_parallel_simulation_rejects_invalid_configuration(void) {
                                    -1, &actual_threads) != 0);
 }
 
+static void test_optimized_simulation_matches_sequential_for_schedules(void) {
+    const struct {
+        NBodySchedule schedule;
+        int chunk;
+        int threads;
+    } configurations[] = {
+        {NBODY_SCHEDULE_STATIC, 0, 1},
+        {NBODY_SCHEDULE_STATIC, 1, 2},
+        {NBODY_SCHEDULE_DYNAMIC, 2, 8},
+        {NBODY_SCHEDULE_GUIDED, 0, 4},
+    };
+    Body expected[64];
+
+    nbody_initialize(expected, 64, NBODY_SEED);
+    assert(nbody_simulate(expected, 64, 6) == 0);
+    for (size_t test = 0; test < sizeof(configurations) / sizeof(configurations[0]); ++test) {
+        Body actual[64];
+        int actual_threads = 0;
+        nbody_initialize(actual, 64, NBODY_SEED);
+        assert(nbody_simulate_optimized_parallel(
+                   actual, 64, 6, configurations[test].threads,
+                   configurations[test].schedule, configurations[test].chunk,
+                   &actual_threads) == 0);
+        assert(actual_threads >= 1 && actual_threads <= configurations[test].threads);
+        assert_bodies_close(expected, actual, 64, 1e-12);
+    }
+}
+
+static void test_optimized_parallel_handles_fewer_bodies_than_threads(void) {
+    Body expected[3];
+    Body actual[3];
+    int actual_threads = 0;
+
+    nbody_initialize(expected, 3, NBODY_SEED);
+    nbody_initialize(actual, 3, NBODY_SEED);
+    assert(nbody_simulate(expected, 3, 4) == 0);
+    assert(nbody_simulate_optimized_parallel(actual, 3, 4, 8,
+                                             NBODY_SCHEDULE_DYNAMIC, 1,
+                                             &actual_threads) == 0);
+    assert(actual_threads >= 1 && actual_threads <= 8);
+    assert_bodies_close(expected, actual, 3, 1e-12);
+}
+
+static void test_optimized_parallel_handles_one_body(void) {
+    Body expected[1];
+    Body actual[1];
+    int actual_threads = 0;
+
+    nbody_initialize(expected, 1, NBODY_SEED);
+    nbody_initialize(actual, 1, NBODY_SEED);
+    assert(nbody_simulate(expected, 1, 3) == 0);
+    assert(nbody_simulate_optimized_parallel(actual, 1, 3, 4,
+                                             NBODY_SCHEDULE_STATIC, 0,
+                                             &actual_threads) == 0);
+    assert(actual_threads >= 1 && actual_threads <= 4);
+    assert_bodies_close(expected, actual, 1, 1e-12);
+}
+
 int main(void) {
     test_initialization_is_reproducible();
     test_single_body_has_no_self_force();
@@ -139,6 +197,9 @@ int main(void) {
     test_positive_size_parser();
     test_parallel_simulation_matches_sequential_for_schedules();
     test_parallel_simulation_rejects_invalid_configuration();
+    test_optimized_simulation_matches_sequential_for_schedules();
+    test_optimized_parallel_handles_fewer_bodies_than_threads();
+    test_optimized_parallel_handles_one_body();
     puts("All N-body unit tests passed.");
     return 0;
 }
