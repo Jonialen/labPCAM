@@ -123,13 +123,14 @@ int nbody_step_parallel(const Body *current, Body *next, size_t count,
 int nbody_simulate_parallel(Body *bodies, size_t count, size_t steps,
                             int requested_threads, NBodySchedule schedule,
                             int chunk_size, int *actual_threads) {
+    omp_sched_t openmp_schedule;
     if (bodies == NULL || count == 0 || count > SIZE_MAX / sizeof(Body) ||
         requested_threads <= 0 || chunk_size < 0 ||
-        nbody_openmp_schedule(schedule, &(omp_sched_t){0}) != 0) {
+        nbody_openmp_schedule(schedule, &openmp_schedule) != 0) {
         return -1;
     }
 
-    Body *buffer = malloc(count * sizeof(*buffer));
+    Body *buffer = (Body *)malloc(count * sizeof(*buffer));
     if (buffer == NULL) {
         return -1;
     }
@@ -159,7 +160,7 @@ int nbody_simulate(Body *bodies, size_t count, size_t steps) {
         return -1;
     }
 
-    Body *next = malloc(count * sizeof(*next));
+    Body *next = (Body *)malloc(count * sizeof(*next));
     if (next == NULL) {
         return -1;
     }

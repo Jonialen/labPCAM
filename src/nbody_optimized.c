@@ -29,7 +29,7 @@ int nbody_step_optimized_parallel(const Body *current, Body *next, size_t count,
      * reduction pass; this trades bounded storage/reduction work for avoiding
      * contended atomics on every pair endpoint. */
     const size_t elements = count * (size_t)requested_threads * 2;
-    double *partial = calloc(elements, sizeof(*partial));
+    double *partial = (double *)calloc(elements, sizeof(*partial));
     if (partial == NULL) {
         return -1;
     }
@@ -106,7 +106,7 @@ int nbody_simulate_optimized_parallel(Body *bodies, size_t count, size_t steps,
         *actual_threads = 0;
     }
 
-    Body *buffer = malloc(count * sizeof(*buffer));
+    Body *buffer = (Body *)malloc(count * sizeof(*buffer));
     if (buffer == NULL) {
         return -1;
     }

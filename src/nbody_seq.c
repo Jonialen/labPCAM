@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    Body *bodies = malloc(count * sizeof(*bodies));
+    Body *bodies = (Body *)malloc(count * sizeof(*bodies));
     if (bodies == NULL) {
         fprintf(stderr, "Error: unable to allocate memory for %zu bodies.\n", count);
         return EXIT_FAILURE;
@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
+    printf("Students: David Dominguez (23712), Jonathan Diaz (23873), Luis Padilla (23663)\n");
     printf("Mode: sequential\n");
     printf("N: %zu | Steps: %zu | Seed: %llu\n", count, steps,
            (unsigned long long)NBODY_SEED);
