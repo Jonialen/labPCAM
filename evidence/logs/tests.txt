@@ -1,0 +1,27 @@
+make: Warning: File 'build' has modification time 1.2 s in the future
+python3 scripts/build_canvas_sources.py
+/usr/bin/gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -fopenmp entrega_canvas/nbody_secuencial.c -o build/canvas_nbody_secuencial -lm
+/usr/bin/gcc -std=c11 -O2 -Wall -Wextra -Wpedantic -fopenmp entrega_canvas/nbody_paralelo.c -o build/canvas_nbody_paralelo -lm
+sh tests/test_cli.sh build/canvas_nbody_secuencial
+CLI tests passed (checksum: 35.284818067314).
+sh tests/test_parallel_cli.sh build/canvas_nbody_paralelo
+Parallel CLI tests passed.
+python3 scripts/sync_cpp.py --check
+C++17 sources match C reference.
+build/test_nbody
+All N-body unit tests passed.
+sh tests/test_cli.sh build/nbody_seq
+CLI tests passed (checksum: 35.284818067314).
+sh tests/test_parallel_cli.sh build/nbody_parallel
+Parallel CLI tests passed.
+sh tests/test_optimized_cli.sh build/nbody_optimized
+Optimized CLI tests passed.
+build/cpp_test_nbody
+All N-body unit tests passed.
+sh tests/test_cli.sh build/cpp_nbody_seq
+CLI tests passed (checksum: 35.284818067314).
+sh tests/test_parallel_cli.sh build/cpp_nbody_parallel
+Parallel CLI tests passed.
+sh tests/test_optimized_cli.sh build/cpp_nbody_optimized
+Optimized CLI tests passed.
+make: warning:  Clock skew detected.  Your build may be incomplete.

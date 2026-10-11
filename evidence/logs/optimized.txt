@@ -1,0 +1,10 @@
+$ build/nbody_optimized 5000 10 8 static
+Students: David Dominguez (23712), Jonathan Diaz (23873), Luis Padilla (23663)
+Mode: parallel-optimized
+N: 5000 | Steps: 10 | Seed: 42
+Threads requested: 8 | Threads used: 8
+Schedule: static | Chunk: default
+Elapsed: 0.254148494 s
+Checksum: 4416.553277470315
+Processors reported by OpenMP: 12
+Maximum threads reported by OpenMP: 12

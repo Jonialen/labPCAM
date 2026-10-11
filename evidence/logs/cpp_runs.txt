@@ -1,0 +1,28 @@
+$ build/cpp_nbody_seq 5000 10
+Students: David Dominguez (23712), Jonathan Diaz (23873), Luis Padilla (23663)
+Mode: sequential
+N: 5000 | Steps: 10 | Seed: 42
+Elapsed: 0.926704169 s
+Checksum: 4416.553277470315
+Processors reported by OpenMP: 12
+Maximum threads reported by OpenMP: 12
+$ build/cpp_nbody_parallel 5000 10 8 static
+Students: David Dominguez (23712), Jonathan Diaz (23873), Luis Padilla (23663)
+Mode: parallel-direct
+N: 5000 | Steps: 10 | Seed: 42
+Threads requested: 8 | Threads used: 8
+Schedule: static | Chunk: default
+Elapsed: 0.209612290 s
+Checksum: 4416.553277470315
+Processors reported by OpenMP: 12
+Maximum threads reported by OpenMP: 12
+$ build/cpp_nbody_optimized 5000 10 8 static
+Students: David Dominguez (23712), Jonathan Diaz (23873), Luis Padilla (23663)
+Mode: parallel-optimized
+N: 5000 | Steps: 10 | Seed: 42
+Threads requested: 8 | Threads used: 8
+Schedule: static | Chunk: default
+Elapsed: 0.254808450 s
+Checksum: 4416.553277470315
+Processors reported by OpenMP: 12
+Maximum threads reported by OpenMP: 12

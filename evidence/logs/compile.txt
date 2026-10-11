@@ -1,0 +1,7 @@
+mkdir -p build
+/usr/bin/gcc -Isrc -std=c11 -O2 -Wall -Wextra -Wpedantic -fopenmp src/nbody_seq.c src/nbody.c -o build/nbody_seq -lm
+/usr/bin/gcc -Isrc -std=c11 -O2 -Wall -Wextra -Wpedantic -fopenmp src/nbody_parallel.c src/nbody.c -o build/nbody_parallel -lm
+/usr/bin/gcc -Isrc -std=c11 -O2 -Wall -Wextra -Wpedantic -fopenmp src/nbody_optimized_main.c src/nbody_optimized.c src/nbody.c -o build/nbody_optimized -lm
+/usr/bin/g++ -Isrc_cpp -std=c++17 -O2 -Wall -Wextra -Wpedantic -fopenmp src_cpp/nbody_seq.cpp src_cpp/nbody.cpp -o build/cpp_nbody_seq -lm
+/usr/bin/g++ -Isrc_cpp -std=c++17 -O2 -Wall -Wextra -Wpedantic -fopenmp src_cpp/nbody_parallel.cpp src_cpp/nbody.cpp -o build/cpp_nbody_parallel -lm
+/usr/bin/g++ -Isrc_cpp -std=c++17 -O2 -Wall -Wextra -Wpedantic -fopenmp src_cpp/nbody_optimized_main.cpp src_cpp/nbody_optimized.cpp src_cpp/nbody.cpp -o build/cpp_nbody_optimized -lm

@@ -1,0 +1,15 @@
+UTC start: 2026-10-11T03:14:36Z
+Implementation: cpp
+N: 5000
+Steps: 10
+Repeats: 3
+Seed: 42
+Git revision: dcba0ae
+Linux LAPTOP-ETV994DU 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+g++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+Architecture:                         x86_64
+CPU(s):                               12
+Model name:                           AMD Ryzen 5 4600H with Radeon Graphics
+Thread(s) per core:                   2
+Core(s) per socket:                   6
+Socket(s):                            1
