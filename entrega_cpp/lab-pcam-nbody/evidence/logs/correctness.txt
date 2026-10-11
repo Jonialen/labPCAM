@@ -1,0 +1,12 @@
+$ build/compare_full_state 5000 10
+N=5000 steps=10 seed=42 direct_threads=8 optimized_threads=8
+direct_max_abs_state_difference=0
+optimized_max_abs_state_difference=1.0658141036401503e-13
+direct_checksum_difference=0
+optimized_checksum_difference=0
+$ build/cpp_compare_full_state 5000 10
+N=5000 steps=10 seed=42 direct_threads=8 optimized_threads=8
+direct_max_abs_state_difference=0
+optimized_max_abs_state_difference=1.0658141036401503e-13
+direct_checksum_difference=0
+optimized_checksum_difference=0

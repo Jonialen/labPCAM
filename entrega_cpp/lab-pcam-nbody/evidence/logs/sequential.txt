@@ -1,0 +1,8 @@
+$ build/cpp_nbody_seq 5000 10
+Students: David Dominguez (23712), Jonathan Diaz (23873), Luis Padilla (23663)
+Mode: sequential
+N: 5000 | Steps: 10 | Seed: 42
+Elapsed: 0.926704169 s
+Checksum: 4416.553277470315
+Processors reported by OpenMP: 12
+Maximum threads reported by OpenMP: 12
